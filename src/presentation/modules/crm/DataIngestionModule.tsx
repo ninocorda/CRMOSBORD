@@ -37,7 +37,8 @@ const DB_FIELDS = [
     { value: "remaining_installments", label: "Cuotas Restantes" },
     { value: "amount_paid", label: "Monto Pagado Inicial" },
     { value: "payment_method", label: "Método de Pago" },
-    { value: "next_payment_date", label: "Fecha Próximo Pago (YYYY-MM-DD)" },
+    { value: "entry_date", label: "Fecha de Ingreso (YYYY-MM-DD)" },
+    { value: "next_payment_date", label: "Fecha Próximo Pago (Opcional)" },
     { value: "__skip", label: "— Omitir —" },
 ];
 

@@ -394,6 +394,16 @@ export async function createStudentWithEnrollment(data: {
     if (sError) throw sError;
 
     // 3. Create Enrollment
+    // If next_payment_date is not provided, we calculate it based on entryDate + paid_installments
+    let calculatedNextPaymentDate = data.next_payment_date;
+    if (!calculatedNextPaymentDate && data.remaining_installments > 0) {
+        const entryDate = new Date(data.entry_date || new Date().toISOString().split('T')[0]);
+        // The first unpaid installment is at (paid_installments) months after entry
+        const nextDate = new Date(entryDate);
+        nextDate.setMonth(nextDate.getMonth() + data.paid_installments);
+        calculatedNextPaymentDate = nextDate.toISOString().split('T')[0];
+    }
+
     const { data: enrollment, error: eError } = await supabase
         .from("enrollments")
         .insert({
@@ -401,7 +411,7 @@ export async function createStudentWithEnrollment(data: {
             course_id: data.course_id,
             paid_installments: data.paid_installments,
             remaining_installments: data.remaining_installments,
-            next_payment_date: data.next_payment_date,
+            next_payment_date: calculatedNextPaymentDate || null,
             preferred_payment_method: data.payment_method
         })
         .select()
