@@ -22,7 +22,7 @@ export default function MessagesPage() {
             const { data } = await getStudentsAction();
             const list = data || [];
             setStudents(list);
-            // Default select only ACTIVE students
+            // Default select only ACTIVE students (excluding suspended AND completed)
             setSelectedIds(new Set(list.filter((s: any) => s.status === 'active').map((s: any) => s.id)));
             setIsLoadingStudents(false);
         };
@@ -48,6 +48,7 @@ export default function MessagesPage() {
 
     const toggleAll = (onlyActive: boolean = false) => {
         if (onlyActive) {
+            // "Solo Activos" means exactly status === 'active'
             setSelectedIds(new Set(students.filter(s => s.status === 'active').map(s => s.id)));
         } else {
             if (selectedIds.size === students.length) {
@@ -116,6 +117,7 @@ export default function MessagesPage() {
                                 <div className="flex flex-wrap gap-2">
                                     <button
                                         onClick={() => toggleAll(true)}
+                                        title="Deseleccionar alumnos suspendidos o que ya finalizaron"
                                         className="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-50 dark:bg-emerald-900/20 px-2.5 py-1 rounded-full transition-colors border border-emerald-100 dark:border-emerald-800/30"
                                     >
                                         Solo Activos
@@ -169,12 +171,17 @@ export default function MessagesPage() {
                                                 <p className={`text-sm font-bold truncate ${isSelected ? "text-blue-900 dark:text-blue-100" : "text-slate-700 dark:text-zinc-300"}`}>
                                                     {student.first_name} {student.last_name}
                                                 </p>
-                                                <p className="text-[11px] text-slate-500 dark:text-zinc-500 truncate font-medium flex items-center gap-2">
-                                                    {student.email || "Sin correo"}
+                                                <div className="flex items-center gap-2">
+                                                    <p className="text-[11px] text-slate-500 dark:text-zinc-500 truncate font-medium">
+                                                        {student.email || "Sin correo"}
+                                                    </p>
                                                     {student.status === 'suspended' && (
-                                                        <span className="text-[9px] bg-red-100 text-red-600 px-1 rounded font-bold uppercase tracking-tighter">S</span>
+                                                        <span className="text-[9px] bg-red-100 text-red-600 px-1 rounded font-bold uppercase tracking-tighter" title="Suspendido">S</span>
                                                     )}
-                                                </p>
+                                                    {student.status === 'completed' && (
+                                                        <span className="text-[9px] bg-emerald-100 text-emerald-600 px-1 rounded font-bold uppercase tracking-tighter" title="Finalizado">F</span>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     );

@@ -31,6 +31,7 @@ const DB_FIELDS = [
     { value: "phone", label: "Teléfono" },
     { value: "country", label: "País" },
     { value: "id_document", label: "Cédula" },
+    { value: "campus_password", label: "Contraseña Campus" },
     { value: "course_id", label: "ID del Curso (UUID)" },
     { value: "total_installments", label: "Total Cuotas" },
     { value: "paid_installments", label: "Cuotas Pagadas" },
