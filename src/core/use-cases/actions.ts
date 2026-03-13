@@ -15,6 +15,7 @@ import {
     deleteCommunication,
     deleteAllCommunications,
     markCommunicationAsRead,
+    deleteStudent,
 } from "@/infrastructure/database/repositories";
 
 // ==========================================
@@ -344,6 +345,15 @@ export async function markCommunicationAsReadAction(id: string) {
     try {
         await markCommunicationAsRead(id);
         return { success: true };
+    } catch (error: any) {
+        return { success: false, error: error.message };
+    }
+}
+
+export async function deleteStudentAction(id: string) {
+    try {
+        await deleteStudent(id);
+        return { success: true, error: null };
     } catch (error: any) {
         return { success: false, error: error.message };
     }

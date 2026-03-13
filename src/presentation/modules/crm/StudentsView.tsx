@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StudentProfile } from "./StudentProfile";
-import { getStudentsAction, suspendStudentAction, updateStudentAction } from "@/core/use-cases/actions";
+import { getStudentsAction, suspendStudentAction, updateStudentAction, deleteStudentAction } from "@/core/use-cases/actions";
 import { toast } from "sonner";
 import Link from "next/link";
 import {
@@ -60,6 +60,9 @@ export function StudentsView() {
     const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [studentToEdit, setStudentToEdit] = useState<any | null>(null);
+    const [studentToDelete, setStudentToDelete] = useState<any | null>(null);
+    const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const loadStudents = async (updateSelectedId?: string) => {
         setIsLoading(true);
@@ -101,6 +104,27 @@ export function StudentsView() {
             }
         } catch (error: any) {
             toast.error(error.message, { id: loadingToast });
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!studentToDelete) return;
+        setIsDeleting(true);
+        const loadingToast = toast.loading("Eliminando alumno...");
+        try {
+            const res = await deleteStudentAction(studentToDelete.id);
+            if (res.success) {
+                toast.success("Alumno eliminado correctamente", { id: loadingToast });
+                setIsDeleteOpen(false);
+                setStudentToDelete(null);
+                loadStudents();
+            } else {
+                toast.error(res.error || "Error al eliminar alumno", { id: loadingToast });
+            }
+        } catch (error: any) {
+            toast.error(error.message, { id: loadingToast });
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -182,6 +206,33 @@ export function StudentsView() {
                             </DialogFooter>
                         </form>
                     )}
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+                <DialogContent className="sm:max-w-[400px]">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2 text-red-600">
+                            <Trash2 className="h-5 w-5" />
+                            Confirmar Eliminación
+                        </DialogTitle>
+                        <DialogDescription className="pt-2">
+                            ¿Estás seguro de que deseas eliminar permanentemente a <strong>{studentToDelete?.first_name} {studentToDelete?.last_name}</strong>?
+                            <br /><br />
+                            Esta acción eliminará también todo su historial de pagos y matrícula. <strong>No se puede deshacer.</strong>
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="pt-4 flex gap-2">
+                        <Button type="button" variant="outline" onClick={() => setIsDeleteOpen(false)} disabled={isDeleting}>Cancelar</Button>
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            onClick={handleDelete}
+                            disabled={isDeleting}
+                        >
+                            {isDeleting ? "Eliminando..." : "Eliminar Definitivamente"}
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
 
@@ -351,6 +402,18 @@ export function StudentsView() {
                                                         >
                                                             <Trash2 className="h-4 w-4 mr-2" />
                                                             {student.status === 'suspended' ? 'Reactivar' : 'Suspender'}
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem
+                                                            className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950 font-bold"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setStudentToDelete(student);
+                                                                setIsDeleteOpen(true);
+                                                            }}
+                                                        >
+                                                            <Trash2 className="h-4 w-4 mr-2" />
+                                                            Eliminar Alumno
                                                         </DropdownMenuItem>
                                                     </DropdownMenuGroup>
                                                 </DropdownMenuContent>

@@ -467,3 +467,33 @@ export async function updateSystemSettings(key: string, value: any) {
     if (error) throw error;
     return data;
 }
+
+export async function deleteStudent(id: string) {
+    const supabase = await getClient();
+
+    // Although the schema should handle ON DELETE CASCADE, 
+    // we explicitly delete to ensure clean cleanup across all related tables
+    // 1. Delete associated payments via enrollments
+    const { data: enrollments } = await supabase
+        .from("enrollments")
+        .select("id")
+        .eq("student_id", id);
+
+    if (enrollments && enrollments.length > 0) {
+        const enrollmentIds = enrollments.map((e: any) => e.id);
+        await supabase.from("payments").delete().in("enrollment_id", enrollmentIds);
+    }
+
+    // 2. Delete enrollments
+    await supabase.from("enrollments").delete().eq("student_id", id);
+
+    // 3. Delete communications
+    await supabase.from("communications_log").delete().eq("user_id", id);
+    await supabase.from("communications_log").delete().eq("student_id", id);
+
+    // 4. Finally delete the student
+    const { error } = await supabase.from("students").delete().eq("id", id);
+    if (error) throw error;
+
+    return { success: true };
+}

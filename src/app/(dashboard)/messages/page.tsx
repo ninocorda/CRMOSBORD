@@ -22,8 +22,8 @@ export default function MessagesPage() {
             const { data } = await getStudentsAction();
             const list = data || [];
             setStudents(list);
-            // Default select all
-            setSelectedIds(new Set(list.map((s: any) => s.id)));
+            // Default select only ACTIVE students
+            setSelectedIds(new Set(list.filter((s: any) => s.status === 'active').map((s: any) => s.id)));
             setIsLoadingStudents(false);
         };
         load();
@@ -46,11 +46,15 @@ export default function MessagesPage() {
         setSelectedIds(next);
     };
 
-    const toggleAll = () => {
-        if (selectedIds.size === students.length) {
-            setSelectedIds(new Set());
+    const toggleAll = (onlyActive: boolean = false) => {
+        if (onlyActive) {
+            setSelectedIds(new Set(students.filter(s => s.status === 'active').map(s => s.id)));
         } else {
-            setSelectedIds(new Set(students.map(s => s.id)));
+            if (selectedIds.size === students.length) {
+                setSelectedIds(new Set());
+            } else {
+                setSelectedIds(new Set(students.map(s => s.id)));
+            }
         }
     };
 
@@ -109,12 +113,20 @@ export default function MessagesPage() {
                                     <Users className="h-5 w-5 text-blue-500" />
                                     Destinatarios ({selectedIds.size})
                                 </h3>
-                                <button
-                                    onClick={toggleAll}
-                                    className="text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-50 dark:bg-blue-900/20 px-3 py-1.5 rounded-full transition-colors"
-                                >
-                                    {selectedIds.size === students.length ? "Deseleccionar Todo" : "Seleccionar Todo"}
-                                </button>
+                                <div className="flex flex-wrap gap-2">
+                                    <button
+                                        onClick={() => toggleAll(true)}
+                                        className="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-50 dark:bg-emerald-900/20 px-2.5 py-1 rounded-full transition-colors border border-emerald-100 dark:border-emerald-800/30"
+                                    >
+                                        Solo Activos
+                                    </button>
+                                    <button
+                                        onClick={() => toggleAll(false)}
+                                        className="text-[10px] font-bold text-blue-600 hover:text-blue-700 bg-blue-50 dark:bg-blue-900/20 px-2.5 py-1 rounded-full transition-colors border border-blue-100 dark:border-blue-800/30"
+                                    >
+                                        {selectedIds.size === students.length ? "Ninguno" : "Todos"}
+                                    </button>
+                                </div>
                             </div>
                             <div className="relative">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -157,8 +169,11 @@ export default function MessagesPage() {
                                                 <p className={`text-sm font-bold truncate ${isSelected ? "text-blue-900 dark:text-blue-100" : "text-slate-700 dark:text-zinc-300"}`}>
                                                     {student.first_name} {student.last_name}
                                                 </p>
-                                                <p className="text-[11px] text-slate-500 dark:text-zinc-500 truncate font-medium">
+                                                <p className="text-[11px] text-slate-500 dark:text-zinc-500 truncate font-medium flex items-center gap-2">
                                                     {student.email || "Sin correo"}
+                                                    {student.status === 'suspended' && (
+                                                        <span className="text-[9px] bg-red-100 text-red-600 px-1 rounded font-bold uppercase tracking-tighter">S</span>
+                                                    )}
                                                 </p>
                                             </div>
                                         </div>
