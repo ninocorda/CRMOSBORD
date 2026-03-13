@@ -291,6 +291,40 @@ export function StudentProfile({ student, enrollments, onUpdate }: StudentProfil
                                     </CardContent>
                                 </Card>
 
+                                {/* Pagado */}
+                                <Card className="col-span-1 border-none shadow-md bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950/20 dark:to-indigo-900/20">
+                                    <CardContent className="p-6">
+                                        <div className="flex flex-col gap-1">
+                                            <span className="text-sm font-medium text-blue-800 dark:text-blue-300">Pagado</span>
+                                            <div className="flex items-baseline gap-2">
+                                                <span className="text-3xl font-extrabold text-blue-600 dark:text-blue-400">
+                                                    ${enr.payments?.filter(p => p.verification_status === 'verified').reduce((acc, p) => acc + (p.amount || 0), 0).toFixed(2)}
+                                                </span>
+                                            </div>
+                                            <span className="text-xs font-semibold text-blue-900/50 dark:text-blue-200/50 uppercase mt-2">
+                                                Inversión recibida
+                                            </span>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
+                                {/* Por Pagar */}
+                                <Card className="col-span-1 border-none shadow-md bg-gradient-to-br from-rose-50 to-red-100 dark:from-rose-950/20 dark:to-red-900/20">
+                                    <CardContent className="p-6">
+                                        <div className="flex flex-col gap-1">
+                                            <span className="text-sm font-medium text-rose-800 dark:text-rose-300">Por pagar</span>
+                                            <div className="flex items-baseline gap-2">
+                                                <span className="text-3xl font-extrabold text-rose-600 dark:text-rose-400">
+                                                    ${enr.payments?.filter(p => p.verification_status === 'pending').reduce((acc, p) => acc + (p.amount || 0), 0).toFixed(2)}
+                                                </span>
+                                            </div>
+                                            <span className="text-xs font-semibold text-rose-900/50 dark:text-rose-200/50 uppercase mt-2">
+                                                Saldo pendiente
+                                            </span>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
                                 <Card className="col-span-1 border-none shadow-md bg-gradient-to-br from-orange-50 to-amber-100 dark:from-orange-950/20 dark:to-amber-900/20">
                                     <CardContent className="p-6">
                                         <div className="flex flex-col gap-1">
