@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Users, LayoutDashboard, CreditCard, BookOpen, Settings, LifeBuoy, Send, Sun, Moon, LogOut, Inbox } from "lucide-react";
+import { Users, LayoutDashboard, CreditCard, BookOpen, Settings, LifeBuoy, Send, Sun, Moon, LogOut, Inbox, UserPlus } from "lucide-react";
 import { useTheme } from "next-themes";
 import { logoutAction } from "@/core/use-cases/actions";
 
@@ -34,6 +34,11 @@ const data = {
                     title: "Alumnos",
                     url: "/students",
                     icon: Users,
+                },
+                {
+                    title: "Leads / Captación",
+                    url: "/leads",
+                    icon: UserPlus,
                 },
                 {
                     title: "Cuentas por Cobrar",

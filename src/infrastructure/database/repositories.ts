@@ -362,6 +362,7 @@ export async function createStudentWithEnrollment(data: {
     next_payment_date: string;
     payment_method: string;
     amount_paid: number;
+    total_price?: number;
 }) {
     const supabase = await getClient();
 
@@ -422,7 +423,8 @@ export async function createStudentWithEnrollment(data: {
     // 4. Generate all installments in the payments table
     // Each installment is monthly starting from entry_date
     const entryDate = new Date(data.entry_date || new Date().toISOString().split('T')[0]);
-    const installmentPrice = Math.round((Number(course.base_price) / (data.total_installments || 1)) * 100) / 100;
+    const finalPrice = data.total_price || Number(course.base_price);
+    const installmentPrice = Math.round((finalPrice / (data.total_installments || 1)) * 100) / 100;
 
     const paymentsToInsert = [];
 
@@ -476,6 +478,99 @@ export async function updateSystemSettings(key: string, value: any) {
         .single();
     if (error) throw error;
     return data;
+}
+
+
+// ==========================================
+// LEADS REPOSITORY
+// ==========================================
+export async function getLeads() {
+    const supabase = await getClient();
+    const { data, error } = await supabase
+        .from("leads")
+        .select("*")
+        .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data;
+}
+
+export async function getLeadById(id: string) {
+    const supabase = await getClient();
+    const { data, error } = await supabase
+        .from("leads")
+        .select("*")
+        .eq("id", id)
+        .single();
+    if (error) throw error;
+    return data;
+}
+
+export async function upsertLead(lead: Record<string, any>) {
+    const supabase = await getClient();
+    const { data, error } = await supabase
+        .from("leads")
+        .upsert({
+            ...lead,
+            updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+    if (error) throw error;
+    return data;
+}
+
+export async function deleteLead(id: string) {
+    const supabase = await getClient();
+    const { error } = await supabase
+        .from("leads")
+        .delete()
+        .eq("id", id);
+    if (error) throw error;
+    return { success: true };
+}
+
+export async function convertLeadToStudent(leadId: string, data: {
+    course_id: string;
+    total_amount: number;
+    installments: number;
+    payment_method: string;
+}) {
+    const supabase = await getClient();
+
+    // 1. Get lead data
+    const { data: lead, error: lError } = await supabase
+        .from("leads")
+        .select("*")
+        .eq("id", leadId)
+        .single();
+
+    if (lError) throw lError;
+
+    // 2. Create student (Reuse existing logic or call createStudentWithEnrollment)
+    const studentResult = await createStudentWithEnrollment({
+        first_name: lead.first_name,
+        last_name: lead.last_name || "",
+        email: lead.email || `lead_${lead.id}@osbord.com`, // Fallback if no email
+        phone: lead.phone,
+        course_id: data.course_id,
+        total_installments: data.installments,
+        paid_installments: 0,
+        remaining_installments: data.installments,
+        next_payment_date: new Date().toISOString().split('T')[0],
+        payment_method: data.payment_method,
+        amount_paid: 0,
+        total_price: data.total_amount
+    });
+
+    // 3. Mark lead as converted
+    const { error: upError } = await supabase
+        .from("leads")
+        .update({ status: 'convertido', updated_at: new Date().toISOString() })
+        .eq("id", leadId);
+
+    if (upError) console.error("Error updating lead status:", upError);
+
+    return studentResult;
 }
 
 export async function deleteStudent(id: string) {

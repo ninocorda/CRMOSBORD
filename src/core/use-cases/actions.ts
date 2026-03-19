@@ -16,6 +16,10 @@ import {
     deleteAllCommunications,
     markCommunicationAsRead,
     deleteStudent,
+    getLeads,
+    upsertLead,
+    deleteLead,
+    convertLeadToStudent,
 } from "@/infrastructure/database/repositories";
 
 // ==========================================
@@ -83,6 +87,48 @@ export async function getStudentEnrollmentsAction(studentId: string) {
         return { data: await getEnrollmentsByStudent(studentId), error: null };
     } catch (error: any) {
         return { data: null, error: error.message };
+    }
+}
+
+// ==========================================
+// LEAD ACTIONS
+// ==========================================
+export async function getLeadsAction() {
+    try {
+        return { data: await getLeads(), error: null };
+    } catch (error: any) {
+        return { data: null, error: error.message };
+    }
+}
+
+export async function upsertLeadAction(data: Record<string, any>) {
+    try {
+        const result = await upsertLead(data);
+        revalidatePath("/leads");
+        return { success: true, data: result };
+    } catch (error: any) {
+        return { success: false, error: error.message };
+    }
+}
+
+export async function deleteLeadAction(id: string) {
+    try {
+        await deleteLead(id);
+        revalidatePath("/leads");
+        return { success: true };
+    } catch (error: any) {
+        return { success: false, error: error.message };
+    }
+}
+
+export async function convertLeadToStudentAction(leadId: string, enrollmentData: any) {
+    try {
+        const result = await convertLeadToStudent(leadId, enrollmentData);
+        revalidatePath("/leads");
+        revalidatePath("/students");
+        return { success: true, data: result };
+    } catch (error: any) {
+        return { success: false, error: error.message };
     }
 }
 
